@@ -16,7 +16,7 @@ export class PartsController {
 
   @Get()
   findAll(@Query('category') category?: string, @Query('page') page = 1,
-    @Query('limit') limit = 50): Promise<PartsResponse> {
+    @Query('limit') limit = 20): Promise<PartsResponse> {
     return this.service.getAll(page, limit, category);
   }
 
@@ -32,7 +32,7 @@ export class PartsController {
 
   @Get('/restock/priorities')
   priorities(@Query('page') page = 1,
-    @Query('limit') limit = 50): Promise<{
+    @Query('limit') limit = 20): Promise<{
       priorities: Partial<PriorityResult>[];
     }> {
     return this.service.getRestockPriorities(page, limit);

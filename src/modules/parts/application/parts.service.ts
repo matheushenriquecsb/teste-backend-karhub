@@ -2,10 +2,11 @@ import { Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { v4 as uuid } from 'uuid';
 import { Part } from '../domain/entities/part.entity';
 import type { PartsRepository } from '../domain/repositories/parts.repository.interface';
-import { GetAllResponse, PriorityRestockResponse, PriorityResult } from '../domain/value-objects/parts-result';
+import { GetAllResponse, PriorityRestockResponse } from '../domain/value-objects/parts-result';
 import { RestockPriorityService } from '../domain/services/restock-priority.service';
 import { CreatePartDto } from '../presentation/dto/create-part.dto';
 import { UpdatePartDto } from '../presentation/dto/update-part.dto';
+import { getPagination } from '../common/pagination.utils';
 
 export const PARTS_REPOSITORY = 'PARTS_REPOSITORY';
 
@@ -31,7 +32,6 @@ export class PartsService {
             payload.criticalityLevel,
         );
 
-
         return this.repository.create(part);
     }
 
@@ -53,15 +53,12 @@ export class PartsService {
         }
 
         const offset = (page - 1) * limit;
-
         const { data, total } = await this.repository.findAll(offset, limit);
+        const pagination = getPagination({ page, limit }, total);
 
         return {
             data,
-            total,
-            page,
-            limit,
-            totalPages: Math.ceil(total / limit),
+            ...pagination
         };
     }
 
@@ -93,7 +90,11 @@ export class PartsService {
         const offset = (page - 1) * limit;
         const parts = await this.repository.findAll(offset, limit);
         const priorities = this.priorityService.calculate(parts.data);
-        const total = priorities.length;
+
+        const pagination = getPagination(
+            { page, limit },
+            priorities.length,
+        );
 
         return {
             priorities: priorities.map(p => ({
@@ -104,9 +105,7 @@ export class PartsService {
                 minimumStock: p.minimumStock,
                 urgencyScore: p.urgencyScore,
             })),
-            total,
-            page,
-            limit
+            ...pagination
         };
     }
 
