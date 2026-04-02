@@ -1,5 +1,5 @@
 import { Part } from '../entities/part.entity';
-import { PriorityResult } from '../value-objects/priority-result';
+import { PriorityResult } from '../value-objects/parts-result';
 
 export class RestockPriorityService {
     calculate(parts: Part[]): PriorityResult[] {

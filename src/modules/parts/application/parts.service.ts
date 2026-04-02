@@ -2,7 +2,7 @@ import { Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { v4 as uuid } from 'uuid';
 import { Part } from '../domain/entities/part.entity';
 import type { PartsRepository } from '../domain/repositories/parts.repository.interface';
-import { PriorityResult } from '../domain/value-objects/priority-result';
+import { GetAllResponse, PriorityRestockResponse, PriorityResult } from '../domain/value-objects/parts-result';
 import { RestockPriorityService } from '../domain/services/restock-priority.service';
 import { CreatePartDto } from '../presentation/dto/create-part.dto';
 import { UpdatePartDto } from '../presentation/dto/update-part.dto';
@@ -35,9 +35,34 @@ export class PartsService {
         return this.repository.create(part);
     }
 
-    async getAll(category?: string): Promise<Part[]> {
-        if (category) return this.repository.findByCategory(category);
-        return this.repository.findAll();
+    async getAll(
+        page: number,
+        limit: number,
+        category?: string,
+    ): Promise<GetAllResponse> {
+        if (category) {
+            const data = await this.repository.findByCategory(category);
+
+            return {
+                data,
+                total: data.length,
+                page: 1,
+                limit: data.length,
+                totalPages: 1,
+            };
+        }
+
+        const offset = (page - 1) * limit;
+
+        const { data, total } = await this.repository.findAll(offset, limit);
+
+        return {
+            data,
+            total,
+            page,
+            limit,
+            totalPages: Math.ceil(total / limit),
+        };
     }
 
     async update(id: string, payload: UpdatePartDto): Promise<Part> {
@@ -64,12 +89,11 @@ export class PartsService {
         return this.repository.delete(id);
     }
 
-    async getRestockPriorities(): Promise<{
-        priorities: Partial<PriorityResult>[];
-    }> {
-        const parts = await this.repository.findAll();
-
-        const priorities = this.priorityService.calculate(parts);
+    async getRestockPriorities(page: number, limit: number): Promise<PriorityRestockResponse> {
+        const offset = (page - 1) * limit;
+        const parts = await this.repository.findAll(offset, limit);
+        const priorities = this.priorityService.calculate(parts.data);
+        const total = priorities.length;
 
         return {
             priorities: priorities.map(p => ({
@@ -80,6 +104,9 @@ export class PartsService {
                 minimumStock: p.minimumStock,
                 urgencyScore: p.urgencyScore,
             })),
+            total,
+            page,
+            limit
         };
     }
 

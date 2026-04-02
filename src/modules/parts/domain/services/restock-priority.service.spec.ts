@@ -5,6 +5,8 @@ import { InMemoryPartsRepository } from '../../infra/repositories/in-memory-part
 describe('RestockPriorityService', () => {
     let service: RestockPriorityService;
     let repository: InMemoryPartsRepository;
+    let page = 1;
+    let limit = 50;
 
     beforeEach(() => {
         service = new RestockPriorityService();
@@ -26,8 +28,8 @@ describe('RestockPriorityService', () => {
 
         await repository.create(part);
 
-        const parts = await repository.findAll();
-        const result = service.calculate(parts);
+        const parts = await repository.findAll(page, limit);
+        const result = service.calculate(parts.data);
 
         expect(result.length).toBe(1);
         expect(result[0].urgencyScore).toBe(75);
@@ -48,11 +50,11 @@ describe('RestockPriorityService', () => {
 
         await repository.create(part);
 
-        const parts = await repository.findAll();
-        const result = service.calculate(parts);
+        const parts = await repository.findAll(page, limit);
+        const result = service.calculate(parts.data);
 
-        const expectedConsumption = parts[0].averageDailySales * parts[0].leadTimeDays
-        const projectedStock = parts[0].currentStock - expectedConsumption
+        const expectedConsumption = parts.data[0].averageDailySales * parts.data[0].leadTimeDays
+        const projectedStock = parts.data[0].currentStock - expectedConsumption
 
         expect(result).toEqual([]);
         expect(projectedStock).toBeGreaterThan(expectedConsumption);
@@ -73,8 +75,8 @@ describe('RestockPriorityService', () => {
 
         await repository.create(part);
 
-        const parts = await repository.findAll();
-        const result = service.calculate(parts);
+        const parts = await repository.findAll(page, limit);
+        const result = service.calculate(parts.data);
 
         expect(result.length).toBe(1);
     });
@@ -94,8 +96,8 @@ describe('RestockPriorityService', () => {
 
         await repository.create(part);
 
-        const parts = await repository.findAll();
-        const result = service.calculate(parts);
+        const parts = await repository.findAll(page, limit);
+        const result = service.calculate(parts.data);
 
         expect(result[0].urgencyScore).toBe(210);
     });
@@ -107,8 +109,8 @@ describe('RestockPriorityService', () => {
         await repository.create(p1);
         await repository.create(p2);
 
-        const parts = await repository.findAll();
-        const result = service.calculate(parts);
+        const parts = await repository.findAll(page, limit);
+        const result = service.calculate(parts.data);
 
         expect(result[0].criticalityLevel).toBeGreaterThan(
             result[1].criticalityLevel
@@ -122,8 +124,8 @@ describe('RestockPriorityService', () => {
         await repository.create(p1);
         await repository.create(p2);
 
-        const parts = await repository.findAll();
-        const result = service.calculate(parts);
+        const parts = await repository.findAll(page, limit);
+        const result = service.calculate(parts.data);
 
         expect(result[0].name).toBe('A');
     });
@@ -143,8 +145,8 @@ describe('RestockPriorityService', () => {
 
         await repository.create(part);
 
-        const parts = await repository.findAll();
-        const result = service.calculate(parts);
+        const parts = await repository.findAll(page, limit);
+        const result = service.calculate(parts.data);
 
         expect(result[0].urgencyScore).toBeGreaterThan(50);
     });

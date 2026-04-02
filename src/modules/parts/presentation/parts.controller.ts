@@ -3,7 +3,7 @@ import { PartsService } from '../application/parts.service';
 import { CreatePartDto } from './dto/create-part.dto';
 import { UpdatePartDto } from './dto/update-part.dto';
 import { Part } from '../domain/entities/part.entity';
-import { PriorityResult } from '../domain/value-objects/priority-result';
+import { PartsResponse, PriorityResult } from '../domain/value-objects/parts-result';
 
 @Controller('parts')
 export class PartsController {
@@ -15,8 +15,9 @@ export class PartsController {
   }
 
   @Get()
-  findAll(@Query('category') category?: string): Promise<Part[]> {
-    return this.service.getAll(category);
+  findAll(@Query('category') category?: string, @Query('page') page = 1,
+    @Query('limit') limit = 50): Promise<PartsResponse> {
+    return this.service.getAll(page, limit, category);
   }
 
   @Put(':id')
@@ -30,9 +31,10 @@ export class PartsController {
   }
 
   @Get('/restock/priorities')
-  priorities(): Promise<{
-    priorities: Partial<PriorityResult>[];
-  }> {
-    return this.service.getRestockPriorities();
+  priorities(@Query('page') page = 1,
+    @Query('limit') limit = 50): Promise<{
+      priorities: Partial<PriorityResult>[];
+    }> {
+    return this.service.getRestockPriorities(page, limit);
   }
 }

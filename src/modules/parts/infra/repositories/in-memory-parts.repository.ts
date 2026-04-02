@@ -10,8 +10,19 @@ export class InMemoryPartsRepository implements PartsRepository {
     return part;
   }
 
-  async findAll(): Promise<Part[]> {
-    return this.parts;
+
+  async findAll(
+    page: number,
+    limit: number,
+  ): Promise<{ data: Part[]; total: number }> {
+    const total = this.parts.length;
+    const offset = (page - 1) * limit;
+    const data = this.parts.slice(offset, offset + limit);
+
+    return {
+      data,
+      total,
+    };
   }
 
   async findById(id: string): Promise<Part | null> {

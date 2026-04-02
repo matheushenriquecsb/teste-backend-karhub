@@ -19,9 +19,19 @@ export class TypeOrmPartsRepository implements PartsRepository {
         return PartMapper.toDomain(saved);
     }
 
-    async findAll(): Promise<Part[]> {
-        const data = await this.repo.find();
-        return data.map(PartMapper.toDomain);
+    async findAll(
+        offset: number,
+        limit: number,
+    ): Promise<{ data: Part[]; total: number }> {
+        const [entities, total] = await this.repo.findAndCount({
+            skip: offset,
+            take: limit,
+        });
+
+        return {
+            data: entities.map(PartMapper.toDomain),
+            total,
+        };
     }
 
     async findById(id: string): Promise<Part | null> {
