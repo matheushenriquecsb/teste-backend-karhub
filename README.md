@@ -26,8 +26,7 @@
 ### 1. Clonar o repositório
 
 ```bash
-git clone <repo-url>
-cd parts-api
+git clone <repo-url> .
 ```
 
 ---
